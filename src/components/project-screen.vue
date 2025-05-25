@@ -1,10 +1,16 @@
 <template>
   <div class="screen">
     <h1>Vertretungsstatistiken v {{ version }}</h1>
+    <p v-if="project.monate.length>0">
+      Importierte Monate:
+      <template v-for="(m,i) in project.monate">
+        {{ i>0? ', ':'' }} {{m}}
+      </template>
+    </p>
     <Button @click="uploadMonth()" label="Excel-Tabellen hochladen"/>
     <div v-if="project.lehrkraefte.length>0">
       <div>
-        Von <DatePicker v-model="from" date-format="yy-m" view="month"/> bis <DatePicker v-model="to" date-format="yy-m" view="month"/>
+        <DatePicker @date-select="updateStatistic()" selectionMode="range" v-model="dates" date-format="yy-m" view="month"/>
         <Select v-model="displayedData" :options="options.displayedData" option-label="name"/>
         <MultiSelect v-model="selectedLehrkraefte" :option-label="(lk)=>{return lk.name+' ('+lk.kuerzel+')';}" :options="project.lehrkraefte"/> <Select v-model="sort" :options="options.sort"/>
       </div>
@@ -22,7 +28,8 @@
       Noch keine Daten vorhanden
     </div>
     <Dialog :header="lehrkraftDetails?.name+' ('+lehrkraftDetails?.kuerzel+')'" v-model:visible="dialog.lehrkraftDetails">
-      <p>Summierte Werte von {{ from }} bis {{ to }}:</p>
+      <p v-if="dates.length>1">Summierte Werte von {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }} bis {{ months[dates[1].getMonth()] }} {{ dates[1].getFullYear() }}:</p>
+      <p v-else>Werte für {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }}</p>
       <table class="details" v-if="lehrkraftDetails">
         <tr>
           <th>Art</th><th>Anzahl Stunden</th>
@@ -61,6 +68,7 @@ import {uploadExcel} from "../functions/helper.js";
 import ExcelReader from "../classes/ExcelReader.js";
 import Statistic from "../classes/Statistic.js";
 import {version} from "../../package.json";
+import months from "../functions/months.js";
 
 const excelReader=new ExcelReader();
 
@@ -77,13 +85,15 @@ export default{
   components: {
     Button, DatePicker, Select, MultiSelect, Dialog
   },
-  watch: {
+  computed: {
     from(){
-      this.updateStatistic();
+      return this.dates[0];
     },
     to(){
-      this.updateStatistic();
-    },
+      if(this.dates.length>1 && this.dates[1]) return this.dates[1]; else return this.dates[0];
+    }
+  },
+  watch: {
     sort(){
       this.updateStatistic();
     },
@@ -100,10 +110,10 @@ export default{
   },
   data(){
     return {
+      months: months,
       version: version,
       statistic: new Statistic(this.project),
-      from: new Date(),
-      to: new Date(),
+      dates: [new Date()],
       lehrkraftDetails: null,
       dialog: {
         lehrkraftDetails: false

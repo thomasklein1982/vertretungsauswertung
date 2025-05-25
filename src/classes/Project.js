@@ -1,10 +1,12 @@
 import ExcelReader from "./ExcelReader";
 import Lehrkraft from "./Lehrkraft";
+import months from "../functions/months";
 
 export default class Project{
   constructor(name){
     this.name=name;
     this.lehrkraefte=[];
+    this.monate=[];
   }
 
   getLehrkraftByKuerzel(kuerzel){
@@ -24,11 +26,17 @@ export default class Project{
     let monat;
     let jahr;
     if(s){
-      monat=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"].indexOf(s[1]);
+      monat=months.indexOf(s[1]);
       jahr=s[2]*1;
     }else{
       throw "Dateiname enthält keine Monatsbezeichnung gefolgt von der Jahreszahl";
     }
+    let monatfull=jahr+"-"+(monat+1);
+    if(this.monate.indexOf(monatfull)>=0){
+      alert("Für diesen Monat wurden bereits Daten hochgeladen.");
+      return;
+    }
+    this.monate.push(monatfull);
     while(true){
       let c;
       //naechste Lehrkraft finden:

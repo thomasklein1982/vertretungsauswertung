@@ -4,10 +4,8 @@ export default class Statistic{
     this.data=[];
     
   }
-  update(type,timeInterval,lehrkraefte, ascendingOrder){
+  update(type,from,to,lehrkraefte, ascendingOrder){
     if(!lehrkraefte) return;
-    let from=timeInterval.from;
-    let to=timeInterval.to;
     from={
       year: from.getFullYear(),
       month: from.getMonth()

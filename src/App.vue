@@ -17,14 +17,14 @@ export default{
   },
   data(){
     return {
-      screen: 'start',
-      project: null
+      screen: 'project',
+      project: new Project("Vertretung")
     };
   },
   methods: {
     createNewProject(){
       let name=prompt("Name des neuen Projekts:");
-      this.project=new Project(name);
+      this.project=new Project(name)
       this.screen="project";
     }
   }

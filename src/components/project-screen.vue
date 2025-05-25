@@ -1,13 +1,12 @@
 <template>
   <div class="screen">
     <h1>Vertretungsstatistiken {{ project.name }}</h1>
-    <Button @click="uploadMonth()" label="Excel-Tabelle hochladen"/>
+    <Button @click="uploadMonth()" label="Excel-Tabellen hochladen"/>
     <div v-if="project.lehrkraefte.length>0">
       <div>
-        Von <DatePicker v-model="filter.from" date-format="yy-m" view="month"/> bis <DatePicker v-model="filter.to" date-format="yy-m" view="month"/>
+        Von <DatePicker v-model="from" date-format="yy-m" view="month"/> bis <DatePicker v-model="to" date-format="yy-m" view="month"/>
         <Select v-model="displayedData" :options="options.displayedData" option-label="name"/>
         <MultiSelect v-model="selectedLehrkraefte" option-label="kuerzel" :options="project.lehrkraefte" placeholder="Lehrkräfte auswählen" :maxSelectedLabels="3"/> <Select v-model="sort" :options="options.sort"/>
-        <Button @click="updateStatistic()" label="Anwenden"/>
       </div>
       <table class="overview">
         <tr><th>Stunden</th><th>Lehrkräfte</th></tr>
@@ -23,7 +22,7 @@
       Noch keine Daten vorhanden
     </div>
     <Dialog :header="lehrkraftDetails?.name+' ('+lehrkraftDetails?.kuerzel+')'" v-model:visible="dialog.lehrkraftDetails">
-      <p>Summierte Werte von {{ filter.from }} bis {{ filter.to }}:</p>
+      <p>Summierte Werte von {{ from }} bis {{ to }}:</p>
       <table class="details" v-if="lehrkraftDetails">
         <tr>
           <th>Art</th><th>Anzahl Stunden</th>
@@ -77,22 +76,38 @@ export default{
   components: {
     Button, DatePicker, Select, MultiSelect, Dialog
   },
+  watch: {
+    from(){
+      this.updateStatistic();
+    },
+    to(){
+      this.updateStatistic();
+    },
+    sort(){
+      this.updateStatistic();
+    },
+    selectedLehrkraefte(){
+      this.updateStatistic();
+    },
+    displayedData(){
+      this.updateStatistic();
+    },
+
+  },
   props: {
     project: Object
   },
   data(){
     return {
       statistic: new Statistic(this.project),
-      filter: {
-        from: new Date(),
-        to: new Date()
-      },
+      from: new Date(),
+      to: new Date(),
       lehrkraftDetails: null,
       dialog: {
         lehrkraftDetails: false
       },
       sort: "absteigend",
-      selectedLehrkraefte: null,
+      selectedLehrkraefte: this.project.lehrkraefte,
       displayedData: displayedData[0],
       options: {
         displayedData: displayedData,
@@ -103,10 +118,13 @@ export default{
   methods: {
     async uploadMonth(){
       let f= await uploadExcel();
-      this.project.importExcel(f);
+      for(let i=0;i<f.length;i++){
+        this.project.importExcel(f[i]);
+      }
+      this.updateStatistic();
     },
     updateStatistic(){
-      this.statistic.update(this.displayedData.type,this.filter,this.selectedLehrkraefte, this.sort==="aufsteigend");
+      this.statistic.update(this.displayedData.type,this.from,this.to,this.selectedLehrkraefte, this.sort==="aufsteigend");
     },
     showLehrkraftDetails(lk){
       this.lehrkraftDetails=lk;

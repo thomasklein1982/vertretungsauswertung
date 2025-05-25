@@ -62,14 +62,19 @@ export async function uploadExcel(options){
   fi.type="file";
   fi.accept=".xlsx,.xls";
   fi.name="files[]";
+  fi.multiple=true;
   fi.style.display="none";
   document.body.appendChild(fi);
   let p=new Promise(async (resolve,reject)=>{
     fi.addEventListener("change",async (e)=>{
-      let file=fi.files[0];
-      let excel=await uploadExcelFile(file);
+      let files=[];
+      for(let i=0;i<fi.files.length;i++){
+        let file=fi.files[i];
+        let excel=await uploadExcelFile(file);
+        files.push(excel);
+      }
       document.body.removeChild(fi);
-      resolve(excel);
+      resolve(files);
     },false);
     fi.addEventListener("blur",(e)=>{
       console.log("cancel");

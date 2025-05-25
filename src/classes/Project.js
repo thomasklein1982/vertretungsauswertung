@@ -46,9 +46,12 @@ export default class Project{
       if(!lk){
         reader.move(1,0);
         let name=reader.getCurrentCellContent();
+        
         reader.move(-1,0);
         lk=new Lehrkraft(c,name);
-        this.lehrkraefte.push(lk);
+        if(name){
+          this.lehrkraefte.push(lk);
+        }
       }
       let data;
       if(hasVertretungen){
@@ -72,7 +75,6 @@ export default class Project{
       }
       lk.setData(jahr,monat,data);
     }
-    console.log(this.lehrkraefte);
   }
 
   readToNextVertretungenEntfaelle(reader){

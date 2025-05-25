@@ -1,19 +1,19 @@
 <template>
   <div class="screen">
-    <h1>Vertretungsstatistiken {{ project.name }}</h1>
+    <h1>Vertretungsstatistiken v {{ version }}</h1>
     <Button @click="uploadMonth()" label="Excel-Tabellen hochladen"/>
     <div v-if="project.lehrkraefte.length>0">
       <div>
         Von <DatePicker v-model="from" date-format="yy-m" view="month"/> bis <DatePicker v-model="to" date-format="yy-m" view="month"/>
         <Select v-model="displayedData" :options="options.displayedData" option-label="name"/>
-        <MultiSelect v-model="selectedLehrkraefte" option-label="kuerzel" :options="project.lehrkraefte" placeholder="Lehrkräfte auswählen" :maxSelectedLabels="3"/> <Select v-model="sort" :options="options.sort"/>
+        <MultiSelect v-model="selectedLehrkraefte" :option-label="(lk)=>{return lk.name+' ('+lk.kuerzel+')';}" :options="project.lehrkraefte"/> <Select v-model="sort" :options="options.sort"/>
       </div>
       <table class="overview">
         <tr><th>Stunden</th><th>Lehrkräfte</th></tr>
         <template v-for="(d,i) in statistic.data">
         <tr v-if="d">
           <td>{{d.sum}}</td>
-          <td><span class="lehrkraft" @click="showLehrkraftDetails(lk)" v-for="(lk,j) in d.lehrkraefte">{{ lk.kuerzel }}, </span></td>
+          <td><Button @click="showLehrkraftDetails(lk)" text v-for="(lk,j) in d.lehrkraefte" :label="lk.name"/></td>
         </tr>
         </template>
       </table>
@@ -53,13 +53,14 @@
 <script>
 import Button from "primevue/button";
 import DatePicker from "primevue/datepicker";
-import MultiSelect from 'primevue/multiselect';
+import MultiSelect from './multi-select.vue';
 import Dialog from "primevue/dialog";
 
 import Select from "primevue/select";
 import {uploadExcel} from "../functions/helper.js";
 import ExcelReader from "../classes/ExcelReader.js";
 import Statistic from "../classes/Statistic.js";
+import {version} from "../../package.json";
 
 const excelReader=new ExcelReader();
 
@@ -99,6 +100,7 @@ export default{
   },
   data(){
     return {
+      version: version,
       statistic: new Statistic(this.project),
       from: new Date(),
       to: new Date(),
@@ -107,7 +109,7 @@ export default{
         lehrkraftDetails: false
       },
       sort: "absteigend",
-      selectedLehrkraefte: this.project.lehrkraefte,
+      selectedLehrkraefte: [],
       displayedData: displayedData[0],
       options: {
         displayedData: displayedData,

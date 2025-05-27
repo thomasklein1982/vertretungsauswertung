@@ -31,6 +31,16 @@ export default{
       if(!ov || nv.length!==ov.length){
         this.updateItems();
       }
+    },
+    modelValue(nv,ov){
+      if(this.selfChange){
+        this.selfChange=false;
+        return;
+      }
+      for(let i=0;i<this.items.length;i++){
+        let it=this.items[i];
+        it.selected=nv.indexOf(it.data)>=0;
+      }
     }
   },
   emits: ["update:modelValue"],
@@ -65,7 +75,8 @@ export default{
   data(){
     return {
       all: false,
-      items: []
+      items: [],
+      selfChange: false
     };
   },
   mounted(){
@@ -84,6 +95,7 @@ export default{
       this.change();
     },
     change(){
+      this.selfChange=true;
       let array=[];
       //while(this.modelValue.length>0) this.modelValue.pop();
       for(let i=0;i<this.items.length;i++){

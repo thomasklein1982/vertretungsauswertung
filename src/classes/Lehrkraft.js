@@ -38,7 +38,7 @@ export default class Lehrkraft{
       //differenz zaehlen:
       return d.vertretungen.zaehlen-d.entfaelle.zaehlen;
     }else if(type===1){
-      return d.vertretungen.zaehlen+d.vertretungen.nichtZaehlen-d.entfaelle.zaehlen-d.vertretungen.nichtZaehlen;
+      return d.vertretungen.zaehlen+d.vertretungen.nichtZaehlen-d.entfaelle.zaehlen-d.entfaelle.nichtZaehlen;
     }else if(type===2){
       return d.vertretungen.zaehlen;
     }else if(type===3){

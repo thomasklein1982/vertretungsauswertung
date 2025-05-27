@@ -20,17 +20,35 @@ export default class Project{
     return null;
   }
 
+  getMinAndMaxMonth(){
+    let min=null;
+    let max=null;
+    for(let a in this.monate){
+      let m=this.monate[a];
+      if(min===null || m<min){
+        min=m;
+      }
+      if(max===null || m>max){
+        max=m;
+      }
+    }
+    if(min===null) return null;
+    return [min,max];
+  }
+
   importExcel(file){
     const reader=new ExcelReader(file.sheets[0].rows);
-    let s=/(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)(\d\d\d\d)/.exec(file.name);
+    let s=/(Januar|Februar|Maerz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)(\d\d\d\d)/.exec(file.name);
     let monat;
     let jahr;
     if(s){
+      if(s[1]==="Maerz") s[1]="März";
       monat=months.indexOf(s[1]);
       jahr=s[2]*1;
     }else{
       throw "Dateiname enthält keine Monatsbezeichnung gefolgt von der Jahreszahl";
     }
+    
     let monatfull=jahr+"-"+(monat+1);
     if(this.monate.indexOf(monatfull)>=0){
       alert("Für diesen Monat wurden bereits Daten hochgeladen.");

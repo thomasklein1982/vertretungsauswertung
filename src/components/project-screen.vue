@@ -1,6 +1,7 @@
 <template>
   <div class="screen">
-    <h1>Vertretungsstatistiken v {{ version }}</h1>
+    <h1>Vertretungsstatistiken v{{ version }}</h1>
+    <p>Mit diesem Tool können Exporte aus Untis analysiert werden. Von Thomas Klein (<a href="https://mathe-info.com/tools-schule/" target="_blank">Website</a>).</p>
     <p v-if="project.monate.length>0">
       Importierte Monate:
       <template v-for="(m,i) in project.monate">
@@ -14,45 +15,73 @@
         <Select v-model="displayedData" :options="options.displayedData" option-label="name"/>
         <MultiSelect v-model="selectedLehrkraefte" :option-label="(lk)=>{return lk.name+' ('+lk.kuerzel+')';}" :options="project.lehrkraefte"/> <Select v-model="sort" :options="options.sort"/>
       </div>
-      <table class="overview">
-        <tr><th>Stunden</th><th>Lehrkräfte</th></tr>
-        <template v-for="(d,i) in statistic.data">
-        <tr v-if="d">
-          <td>{{d.sum}}</td>
-          <td><Button @click="showLehrkraftDetails(lk)" text v-for="(lk,j) in d.lehrkraefte" :label="lk.name"/></td>
-        </tr>
-        </template>
-      </table>
+      <div >
+        <table class="overview">
+          <tr><th v-for="(m,i) in statistic.months">{{ m.monthName }}</th><th>Gesamt</th></tr>
+          <tr>
+            <td style="vertical-align: top" v-for="(m,i) in statistic.months">
+              <div>
+                <div class="flex-row" v-for="(c,j) in m.data">
+                  <div class="count">({{ c.count }})</div>
+                  <div class="expand">
+                    <Button @click="showLehrkraftDetails(lk,m)" text v-for="(lk,j) in c.lehrkraefte" :label="lk.name"/>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td style="vertical-align: top">
+              <div>
+                <div class="flex-row" v-for="(s,j) in statistic.sums">
+                  <div class="count">({{ s.count }})</div>
+                  <div class="expand">
+                    <Button @click="showLehrkraftDetails(lk.lk)" text v-for="(lk,j) in s.lehrkraefte" :label="lk.lk.name"/>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <!-- <template v-for="(d,i) in statistic.data">
+          <tr v-if="d">
+            <td>{{d.sum}}</td>
+            <td><Button @click="showLehrkraftDetails(lk)" text v-for="(lk,j) in d.lehrkraefte" :label="lk.name"/></td>
+          </tr>
+          </template> -->
+        </table>
+      </div>
     </div>
     <div v-else>
       Noch keine Daten vorhanden
     </div>
     <Dialog :header="lehrkraftDetails?.name+' ('+lehrkraftDetails?.kuerzel+')'" v-model:visible="dialog.lehrkraftDetails">
-      <p v-if="dates.length>1">Summierte Werte von {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }} bis {{ months[dates[1].getMonth()] }} {{ dates[1].getFullYear() }}:</p>
+      <p v-if="monthDetails">Werte für {{ monthDetails.monthName }} {{ monthDetails.year }}</p>
+      <p v-else-if="dates.length>1">Summierte Werte von {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }} bis {{ months[dates[1].getMonth()] }} {{ dates[1].getFullYear() }}:</p>
       <p v-else>Werte für {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }}</p>
       <table class="details" v-if="lehrkraftDetails">
         <tr>
           <th>Art</th><th>Anzahl Stunden</th>
         </tr>
         <tr>
-          <td>Vertretungen (zählend)</td><td>{{lehrkraftDetails.cumulatedData.vertretungen.zaehlen}}</td>
+          <td>Vertretungen (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,2) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen}}</td>
         </tr>
         <tr>
-          <td>Vertretungen (nicht zählend)</td><td>{{lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen}}</td>
+          <td>Vertretungen (nicht zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,6) : lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen}}</td>
         </tr>
         <tr>
-          <td>Entfälle (zählend)</td><td>{{lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td>
+          <td>Entfälle (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,4) : lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td>
         </tr>
         <tr>
-          <td>Entfälle (nicht zählend)</td><td>{{lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td>
+          <td>Entfälle (nicht zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,7) : lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td>
         </tr>
         <tr>
-          <td>Bilanz (zählend)</td><td>{{lehrkraftDetails.cumulatedData.vertretungen.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td>
+          <td>Bilanz (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,0) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td>
         </tr>
         <tr>
-          <td>Bilanz (alles)</td><td>{{lehrkraftDetails.cumulatedData.vertretungen.zaehlen+lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td>
+          <td>Bilanz (alles)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,1) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen+lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td>
         </tr>
       </table>
+      <template #footer>
+        <Button @click="setFilter(lehrkraftDetails)" label="nur diese Lehrkraft anzeigen"/>
+      </template>
     </Dialog>
   </div>
 </template>
@@ -91,6 +120,9 @@ export default{
     },
     to(){
       if(this.dates.length>1 && this.dates[1]) return this.dates[1]; else return this.dates[0];
+    },
+    type(){
+      return this.displayedData.type;
     }
   },
   watch: {
@@ -115,6 +147,7 @@ export default{
       statistic: new Statistic(this.project),
       dates: [new Date()],
       lehrkraftDetails: null,
+      monthDetails: null,
       dialog: {
         lehrkraftDetails: false
       },
@@ -128,18 +161,31 @@ export default{
     }
   },
   methods: {
+    setFilter(lk){
+      this.selectedLehrkraefte=[lk];
+      this.dialog.lehrkraftDetails=false;
+    },
     async uploadMonth(){
       let f= await uploadExcel();
       for(let i=0;i<f.length;i++){
         this.project.importExcel(f[i]);
+      }
+      let m=this.project.getMinAndMaxMonth();
+      if(m){
+        if(m[0]===m[1]){
+          this.dates=[new Date(m[0])];
+        }else{
+          this.dates=[new Date(m[0]), new Date(m[1])];
+        }
       }
       this.updateStatistic();
     },
     updateStatistic(){
       this.statistic.update(this.displayedData.type,this.from,this.to,this.selectedLehrkraefte, this.sort==="aufsteigend");
     },
-    showLehrkraftDetails(lk){
+    showLehrkraftDetails(lk,month){
       this.lehrkraftDetails=lk;
+      this.monthDetails=month;
       this.dialog.lehrkraftDetails=true;
     }
   }
@@ -171,5 +217,7 @@ export default{
 .overview th,td{
   padding: 0.5rem;
 }
-
+.count{
+  padding-top: var(--p-button-padding-y);
+}
 </style>

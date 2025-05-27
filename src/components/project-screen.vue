@@ -1,14 +1,22 @@
 <template>
   <div class="screen">
     <h1>Vertretungsstatistiken v{{ version }}</h1>
-    <p>Mit diesem Tool können Exporte aus Untis analysiert werden. Von Thomas Klein (<a href="https://mathe-info.com/tools-schule/" target="_blank">Website</a>).</p>
+    <p>Von Thomas Klein (<a href="https://mathe-info.com/tools-schule/" target="_blank">Website</a>)</p>
+    <p>Mit diesem Tool können Exporte aus Untis analysiert werden. Die Dateien müssen den Monatsnamen, gefolgt von der vierstelligen Jahreszahl im Namen haben (z. B. <code>Vertretungsstatistik_Maerz2025</code>).</p>
     <p v-if="project.monate.length>0">
       Importierte Monate:
       <template v-for="(m,i) in project.monate">
         {{ i>0? ', ':'' }} {{m}}
       </template>
     </p>
-    <Button @click="uploadMonth()" label="Excel-Tabellen hochladen"/>
+    <Button @click="uploadMonth()" label="Excel-Tabellen importieren"/>
+    <div v-if="importErrors.length>0">
+      <Message v-for="(e,i) in importErrors" severity="error">
+        {{ e.message }}
+        <Button icon="pi pi-trash" text @click="importErrors.splice(i,1)"/>
+      </Message>
+    </div>
+    
     <div v-if="project.lehrkraefte.length>0">
       <div>
         <DatePicker @date-select="updateStatistic()" selectionMode="range" v-model="dates" date-format="yy-m" view="month"/>
@@ -91,6 +99,7 @@ import Button from "primevue/button";
 import DatePicker from "primevue/datepicker";
 import MultiSelect from './multi-select.vue';
 import Dialog from "primevue/dialog";
+import Message from "primevue/message";
 
 import Select from "primevue/select";
 import {uploadExcel} from "../functions/helper.js";
@@ -112,7 +121,7 @@ let displayedData=[
 
 export default{
   components: {
-    Button, DatePicker, Select, MultiSelect, Dialog
+    Button, DatePicker, Select, MultiSelect, Dialog, Message
   },
   computed: {
     from(){
@@ -144,6 +153,7 @@ export default{
     return {
       months: months,
       version: version,
+      importErrors: [],
       statistic: new Statistic(this.project),
       dates: [new Date()],
       lehrkraftDetails: null,
@@ -168,7 +178,11 @@ export default{
     async uploadMonth(){
       let f= await uploadExcel();
       for(let i=0;i<f.length;i++){
-        this.project.importExcel(f[i]);
+        try{
+          this.project.importExcel(f[i]);
+        }catch(e){
+          this.importErrors.push({message: e});
+        }
       }
       let m=this.project.getMinAndMaxMonth();
       if(m){

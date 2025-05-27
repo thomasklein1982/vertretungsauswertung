@@ -46,13 +46,12 @@ export default class Project{
       monat=months.indexOf(s[1]);
       jahr=s[2]*1;
     }else{
-      throw "Dateiname enthält keine Monatsbezeichnung gefolgt von der Jahreszahl";
+      throw "Dateiname '"+file.name+"'enthält keine Monatsbezeichnung gefolgt von einer vierstelligen Jahreszahl (z. B. Januar2025 oder Maerz2024)";
     }
     
     let monatfull=jahr+"-"+(monat+1);
     if(this.monate.indexOf(monatfull)>=0){
-      alert("Für diesen Monat wurden bereits Daten hochgeladen.");
-      return;
+      throw ("Für den Monat "+monatfull+" wurden bereits Daten hochgeladen.");
     }
     this.monate.push(monatfull);
     while(true){

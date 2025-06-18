@@ -1,6 +1,7 @@
 import ExcelReader from "./ExcelReader";
 import Lehrkraft from "./Lehrkraft";
 import months from "../functions/months";
+import { formatDate } from "../functions/formatDate";
 
 export default class Project{
   constructor(name){
@@ -49,7 +50,7 @@ export default class Project{
       throw "Dateiname '"+file.name+"'enthält keine Monatsbezeichnung gefolgt von einer vierstelligen Jahreszahl (z. B. Januar2025 oder Maerz2024)";
     }
     
-    let monatfull=jahr+"-"+(monat+1);
+    let monatfull=formatDate(jahr,monat+1);
     if(this.monate.indexOf(monatfull)>=0){
       throw ("Für den Monat "+monatfull+" wurden bereits Daten hochgeladen.");
     }

@@ -41,7 +41,54 @@ export default class Project{
   async importPDF(file){
     let pdf=await readPDF(file.code);
     console.log(pdf);
-
+    let monatfull=this.getFileMetaData(file);
+    this.monate.push(monatfull);
+    while(true){
+      let c;
+      //naechste Lehrkraft finden:
+      let hasVertretungen=true;
+      let pos
+      if(!ok) break;
+      c=reader.getCurrentCellContent();
+      if(c.startsWith("0")){
+        hasVertretungen=false;
+      }
+      ok=reader.moveUntilNotEmpty(0,-1);
+      if(!ok) throw "Keine Lehrkraft gefunden";
+      c=reader.getCurrentCellContent();
+      let lk=this.getLehrkraftByKuerzel(c);
+      if(!lk){
+        reader.move(1,0);
+        let name=reader.getCurrentCellContent();
+        
+        reader.move(-1,0);
+        lk=new Lehrkraft(c,name);
+        if(name){
+          this.lehrkraefte.push(lk);
+        }
+      }
+      let data;
+      if(hasVertretungen){
+        ok=reader.gotoCell("Vertretungen:");
+        if(!ok){
+          throw "Keine Vertretungen gefunden";
+        }
+        data=[];
+        let s,w;
+        for(let i=0;i<4;i++){
+          c=reader.getCurrentCellContent();
+          s=c.split(":");
+          w=s[1]*1;
+          data.push(w);
+          reader.move(0,1);
+        }
+      }else{
+        reader.moveUntilNotEmpty(0,1);
+        reader.move(0,1);
+        data=[0,0,0,0];
+      }
+      lk.setData(jahr,monat,data);
+    }
   }
 
   getFileMetaData(file){

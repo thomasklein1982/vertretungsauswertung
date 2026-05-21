@@ -2,6 +2,7 @@ import ExcelReader from "./ExcelReader";
 import Lehrkraft from "./Lehrkraft";
 import months from "../functions/months";
 import { formatDate } from "../functions/formatDate";
+import { readPDF } from "../functions/readPDF";
 
 export default class Project{
   constructor(name){
@@ -37,8 +38,13 @@ export default class Project{
     return [min,max];
   }
 
-  importExcel(file){
-    const reader=new ExcelReader(file.sheets[0].rows);
+  async importPDF(file){
+    let pdf=await readPDF(file.code);
+    console.log(pdf);
+
+  }
+
+  getFileMetaData(file){
     let s=/(Januar|Februar|Maerz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)(\d\d\d\d)/.exec(file.name);
     let monat;
     let jahr;
@@ -54,6 +60,12 @@ export default class Project{
     if(this.monate.indexOf(monatfull)>=0){
       throw ("Für den Monat "+monatfull+" wurden bereits Daten hochgeladen.");
     }
+    return monatfull;
+  }
+
+  importExcel(file){
+    const reader=new ExcelReader(file.sheets[0].rows);
+    let monatfull=this.getFileMetaData(file);
     this.monate.push(monatfull);
     while(true){
       let c;

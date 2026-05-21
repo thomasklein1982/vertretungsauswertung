@@ -2,7 +2,7 @@
   <div class="screen">
     <h1>Vertretungsstatistiken v{{ version }}</h1>
     <p>Von Thomas Klein (<a href="https://mathe-info.com/tools-schule/" target="_blank">Website</a>)</p>
-    <p>Mit diesem Tool können Exporte aus Untis analysiert werden. Die Dateien müssen den Monatsnamen, gefolgt von der vierstelligen Jahreszahl im Namen haben (z. B. <code>Vertretungsstatistik_Maerz2025</code>).</p>
+    <p>Mit diesem Tool können Exporte aus Untis analysiert werden (als Excel oder PDF). Die Dateien müssen den Monatsnamen, gefolgt von der vierstelligen Jahreszahl im Namen haben (z. B. <code>Vertretungsstatistik_Maerz2025</code>).</p>
     <p v-if="project.monate.length>0">
       Importierte Monate:
       <template v-for="(m,i) in project.monate">
@@ -10,6 +10,7 @@
       </template>
     </p>
     <Button @click="uploadMonth()" label="Excel-Tabellen importieren"/>
+    <Button @click="uploadMonthPDF()" label="PDF-Dateien importieren"/>
     <div v-if="importErrors.length>0">
       <Message v-for="(e,i) in importErrors" severity="error">
         {{ e.message }}
@@ -25,6 +26,7 @@
       </div>
       <div >
         <table class="overview">
+          <tbody>
           <tr><th v-for="(m,i) in statistic.months">{{ m.monthName }}</th><th>Gesamt</th></tr>
           <tr>
             <td style="vertical-align: top" v-for="(m,i) in statistic.months">
@@ -54,6 +56,7 @@
             <td><Button @click="showLehrkraftDetails(lk)" text v-for="(lk,j) in d.lehrkraefte" :label="lk.name"/></td>
           </tr>
           </template> -->
+          </tbody>
         </table>
       </div>
     </div>
@@ -65,6 +68,7 @@
       <p v-else-if="dates.length>1">Summierte Werte von {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }} bis {{ months[dates[1].getMonth()] }} {{ dates[1].getFullYear() }}:</p>
       <p v-else>Werte für {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }}</p>
       <table class="details" v-if="lehrkraftDetails">
+        <tbody>
         <tr>
           <th>Art</th><th>Anzahl Stunden</th>
         </tr>
@@ -86,6 +90,7 @@
         <tr>
           <td>Bilanz (alles)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,1) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen+lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td>
         </tr>
+        </tbody>
       </table>
       <template #footer>
         <Button @click="setFilter(lehrkraftDetails)" label="nur diese Lehrkraft anzeigen"/>
@@ -102,7 +107,7 @@ import Dialog from "primevue/dialog";
 import Message from "primevue/message";
 
 import Select from "primevue/select";
-import {uploadExcel} from "../functions/helper.js";
+import {uploadExcel, uploadPDF} from "../functions/helper.js";
 import ExcelReader from "../classes/ExcelReader.js";
 import Statistic from "../classes/Statistic.js";
 import {version} from "../../package.json";
@@ -174,6 +179,25 @@ export default{
     setFilter(lk){
       this.selectedLehrkraefte=[lk];
       this.dialog.lehrkraftDetails=false;
+    },
+    async uploadMonthPDF(){
+      let f= await uploadPDF();
+      for(let i=0;i<f.length;i++){
+        try{
+          this.project.importPDF(f[i]);
+        }catch(e){
+          this.importErrors.push({message: e});
+        }
+      }
+      let m=this.project.getMinAndMaxMonth();
+      if(m){
+        if(m[0]===m[1]){
+          this.dates=[new Date(m[0])];
+        }else{
+          this.dates=[new Date(m[0]), new Date(m[1])];
+        }
+      }
+      this.updateStatistic();
     },
     async uploadMonth(){
       let f= await uploadExcel();

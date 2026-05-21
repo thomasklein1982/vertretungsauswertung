@@ -57,6 +57,11 @@ async function uploadExcelSheet(file, sheet){
   return rows;
 }
 
+export async function uploadPDF(options){
+  let f= await upload({accept: ".pdf", multi: true, arrayBuffer: true});
+  return f;
+}
+
 export async function uploadExcel(options){
   let fi=document.createElement("input");
   fi.type="file";
@@ -112,54 +117,72 @@ async function uploadExcelFile(file){
   return excel;
 }
 
-function uploadCallback(callback,options){
-  //alert("upload callback");
-  var fi=document.createElement("input");
-  fi.type="file";
-  if(options && options.accept) fi.accept=options.accept;
-  fi.name="files[]";
-  fi.style.display="none";
-  document.body.appendChild(fi);
-  if(options && options.multi){fi.multiple=true;}
-  
-  fi.handleCallback=()=>{
-    //alert("handle callback");
+
+async function readFile(file,options){
+  let p=new Promise((resolve,reject)=>{
     var fileReader=new FileReader();
-    var file=fi.files[0];
     fileReader.addEventListener("load",(e)=>{
-      document.body.removeChild(fi);
+      
       var code=e.target.result;
-      callback(code,file.name,file.type);
-      //alert("called callback");
+      resolve({
+        name: file.name,
+        type: file.type,
+        code
+      });
     },false);
     if(options &&options.dataURL){
       fileReader.readAsDataURL(file);
+    }else if(options && options.arrayBuffer){
+      fileReader.readAsArrayBuffer(file);
     }else{
       fileReader.readAsText(file);
     }
-  };
+  });
+  let q=await p;
+  return q;
+}
 
-  fi.addEventListener("change",(e)=>{
-    //alert("on change");
-    fi.handleCallback();
-  },false);
-  fi.click();
+async function upload(options){
+  //alert("upload callback");
+  var p=new Promise(function(resolve,reject){
+    var fi=document.createElement("input");
+    fi.type="file";
+    if(options && options.accept) fi.accept=options.accept;
+    fi.name="files[]";
+    fi.style.display="none";
+    document.body.appendChild(fi);
+    if(options && options.multi){fi.multiple=true;}
+
+    fi.addEventListener("change",async (e)=>{
+      //alert("on change");
+      let files=[];
+      for(let i=0;i<fi.files.length;i++){
+        let f=await readFile(fi.files[i],options);
+        files.push(f);
+      }
+      document.body.removeChild(fi);
+      resolve(files);
+    },false);
+    fi.click();
+  });
+  let q=await p;
+  return q;
   //
 }
 
-export async function upload(options){
-  var p=new Promise(function(resolve,reject){
-    uploadCallback(function(code,fileName,mime){
-      resolve({
-        code: code,
-        fileName: fileName,
-        mime: mime
-      });
-    },options);
-  });
-  var q=await p;
-  return q;
-}
+// export async function upload(options){
+//   var p=new Promise(function(resolve,reject){
+//     uploadCallback(function(code,fileName,mime){
+//       resolve({
+//         code: code,
+//         fileName: fileName,
+//         mime: mime
+//       });
+//     },options);
+//   });
+//   var q=await p;
+//   return q;
+// }
 
 export async function saveLocally(key,data){
   var s=JSON.stringify(data);

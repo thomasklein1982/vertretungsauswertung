@@ -25,9 +25,10 @@
     </div>
     
     <div v-if="project.lehrkraefte.length>0">
-      <h2>Daten</h2>
+      <h2>Auswertung</h2>
       <p>
-        <Select></Select>
+        <Button @click="view=0" :color="view===0? 'primary':'secondary'" label="Übersicht nach Einsätzen"/>
+        <Button @click="view=1" :color="view===1? 'primary':'secondary'" label="Übersicht nach Lehrkräften"/>
       </p>
       <div>
         <DatePicker @date-select="updateStatistic()" selectionMode="range" v-model="dates" date-format="yy-m" view="month"/>
@@ -80,10 +81,10 @@
       <table class="details" v-if="lehrkraftDetails">
         <tbody>
         <tr>
-          <th>Art</th><th>Anzahl Stunden</th>
+          <th>Art</th><th>Anzahl Stunden</th><th></th>
         </tr>
         <tr>
-          <td>Vertretungen (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,2) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen}}</td>
+          <td>Vertretungen (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,2) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen}}</td><td><Button @click="showEinsaetzeDetails(true,false,true,false)"/></td>
         </tr>
         <tr>
           <td>Vertretungen (nicht zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,6) : lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen}}</td>
@@ -102,10 +103,13 @@
         </tr>
         </tbody>
       </table>
+      <Button @click="" label="Details anzeigen"/>
       <template #footer>
+        
         <Button @click="setFilter(lehrkraftDetails)" label="nur diese Lehrkraft anzeigen"/>
       </template>
     </Dialog>
+    <DialogEinsaetzeDetails ref="dialogEinsaetzeDetails"/>
   </div>
 </template>
 
@@ -122,6 +126,7 @@ import ExcelReader from "../classes/ExcelReader.js";
 import Statistic from "../classes/Statistic.js";
 import {version} from "../../package.json";
 import months from "../functions/months.js";
+import DialogEinsaetzeDetails from "./dialog-einsaetze-details.vue";
 
 const excelReader=new ExcelReader();
 
@@ -136,7 +141,7 @@ let displayedData=[
 
 export default{
   components: {
-    Button, DatePicker, Select, MultiSelect, Dialog, Message
+    Button, DatePicker, Select, MultiSelect, Dialog, Message, DialogEinsaetzeDetails
   },
   computed: {
     from(){
@@ -166,6 +171,7 @@ export default{
   },
   data(){
     return {
+      view: 0,
       months: months,
       version: version,
       importErrors: [],
@@ -173,6 +179,7 @@ export default{
       dates: [new Date()],
       lehrkraftDetails: null,
       monthDetails: null,
+
       dialog: {
         lehrkraftDetails: false
       },
@@ -186,6 +193,9 @@ export default{
     }
   },
   methods: {
+    showEinsaetzeDetails(showVertretungen,showEntfaelle,showZaehlend,showNichtZaehlend){
+      this.$refs.dialogEinsaetzeDetails.open(this.lehrkraftDetails,this.dates,showVertretungen,showEntfaelle,showZaehlend,showNichtZaehlend);
+    },
     setFilter(lk){
       this.selectedLehrkraefte=[lk];
       this.dialog.lehrkraftDetails=false;

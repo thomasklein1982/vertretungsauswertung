@@ -14,6 +14,37 @@ export default class Lehrkraft{
       }
     };
   }
+  getFullName(){
+    return this.name+ " ["+this.kuerzel+"]";
+  }
+  getEinsaetze(from,to,vertretungen,entfaelle,zaehlend,nichtZaehlend){
+    console.log("getEinsaetze");
+    from={
+      month: from.getMonth(),
+      year: from.getFullYear()
+    };
+    if(to){
+      to={
+        month: to.getMonth(),
+        year: to.getFullYear()
+      };
+    }else{
+      to=from;
+    }
+    let einsaetze=[];
+    for(let a in this.data){
+      let dataJahr=this.data[a];
+      for(let i=0;i<dataJahr.length;i++){
+        let month=dataJahr[i];
+        if(!month) continue;
+        for(let j=0;j<month.einsaetze.length;j++){
+          let e=month.einsaetze[j];
+          einsaetze.push(e);
+        }
+      }
+    }
+    return einsaetze;
+  }
   createDataIfNecessary(jahr, monat){
     if(!this.data[jahr]){
       this.data[jahr]=[];

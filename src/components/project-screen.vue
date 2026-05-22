@@ -2,7 +2,9 @@
   <div class="screen">
     <h1>Vertretungsstatistiken v{{ version }}</h1>
     <p>Von Thomas Klein (<a href="https://mathe-info.com/tools-schule/" target="_blank">Website</a>)</p>
-    <p>Mit diesem Tool können Exporte aus Untis analysiert werden (als Excel oder PDF). Die Dateien müssen den Monatsnamen, gefolgt von der vierstelligen Jahreszahl im Namen haben (z. B. <code>Vertretungsstatistik_Maerz2025</code>).</p>
+    <p>Mit diesem Tool können Exporte aus Untis analysiert werden (als Excel oder PDF).</p>
+    <h2>Import der Untis-Daten</h2>
+    <p>Die Dateien (Excel oder PDF) müssen den Monatsnamen, gefolgt von der vierstelligen Jahreszahl im Namen haben (z. B. <code>Vertretungsstatistik_Maerz2025</code>).</p>
     <p v-if="project.monate.length>0">
       Importierte Monate:
       <template v-for="(m,i) in project.monate">
@@ -11,14 +13,22 @@
     </p>
     <Button @click="uploadMonth()" label="Excel-Tabellen importieren"/>
     <Button @click="uploadMonthPDF()" label="PDF-Dateien importieren"/>
+    <h2>Import-Fehler</h2>
     <div v-if="importErrors.length>0">
       <Message v-for="(e,i) in importErrors" severity="error">
         {{ e.message }}
         <Button icon="pi pi-trash" text @click="importErrors.splice(i,1)"/>
       </Message>
     </div>
+    <div v-else>
+      keine
+    </div>
     
     <div v-if="project.lehrkraefte.length>0">
+      <h2>Daten</h2>
+      <p>
+        <Select></Select>
+      </p>
       <div>
         <DatePicker @date-select="updateStatistic()" selectionMode="range" v-model="dates" date-format="yy-m" view="month"/>
         <Select v-model="displayedData" :options="options.displayedData" option-label="name"/>
@@ -184,7 +194,7 @@ export default{
       let f= await uploadPDF();
       for(let i=0;i<f.length;i++){
         try{
-          this.project.importPDF(f[i]);
+          await this.project.importPDF(f[i]);
         }catch(e){
           this.importErrors.push({message: e});
         }

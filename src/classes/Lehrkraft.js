@@ -14,20 +14,35 @@ export default class Lehrkraft{
       }
     };
   }
-  setData(jahr,monat,data){
+  createDataIfNecessary(jahr, monat){
     if(!this.data[jahr]){
       this.data[jahr]=[];
     }
-    this.data[jahr][monat]={
-      vertretungen: {
-        zaehlen: data[0],
-        nichtZaehlen: data[1],
-      },
-      entfaelle: {
-        zaehlen: data[2],
-        nichtZaehlen: data[3],
-      }
-    };
+    if(!this.data[jahr][monat]){
+      this.data[jahr][monat]={
+        einsaetze: [],
+        vertretungen: {
+          zaehlen: 0,
+          nichtZaehlen: 0,
+        },
+        entfaelle: {
+          zaehlen: 0,
+          nichtZaehlen: 0,
+        }
+      };
+    }
+  }
+  addEinsatz(jahr, monat, einsatz){
+    this.createDataIfNecessary(jahr,monat);
+    this.data[jahr][monat].einsaetze.push(einsatz);
+  }
+  setData(jahr,monat,data){
+    this.createDataIfNecessary(jahr,monat);
+    let d=this.data[jahr][monat];
+    d.vertretungen.zaehlen=data[0];
+    d.vertretungen.nichtZaehlen=data[1];
+    d.entfaelle.zaehlen=data[2];
+    d.entfaelle.nichtZaehlen=data[3];
   }
   getData(year, month, type){
     let d=this.data[year];

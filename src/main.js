@@ -13,4 +13,3 @@ app.use(PrimeVue, {
 });
 app.mount('#app')
 
-import PDFJS from 'pdfjs-dist';

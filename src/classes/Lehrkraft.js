@@ -19,6 +19,12 @@ export default class Lehrkraft{
   getFullName(){
     return this.name+ " ["+this.kuerzel+"]";
   }
+  getStatistic(month, type){
+    let data;
+    if(!month) data=this.cumulatedData;
+    else data=this.data[month.year][month.month];
+    return type.calc(data);
+  }
   getEinsaetze(from,to,vertretungen,entfaelle,zaehlend,nichtZaehlend){
     if(!to) to=from;
     let einsaetze=[];

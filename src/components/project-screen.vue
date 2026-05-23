@@ -2,7 +2,7 @@
   <div class="screen">
     <h1>Vertretungsstatistiken v{{ version }}</h1>
     <p>Von Thomas Klein (<a href="https://mathe-info.com/tools-schule/" target="_blank">Website</a>)</p>
-    <p>Mit diesem Tool können Exporte aus Untis analysiert werden (als Excel oder PDF).</p>
+    <p>Mit diesem Tool können Exporte aus Untis analysiert werden.</p>
     <h2>Import der Untis-Daten</h2>
     <p>Die Dateien (Excel oder PDF) müssen den Monatsnamen, gefolgt von der vierstelligen Jahreszahl im Namen haben (z. B. <code>Vertretungsstatistik_Maerz2025</code>).</p>
     <p v-if="project.monate.length>0">
@@ -27,8 +27,8 @@
     <div v-if="project.lehrkraefte.length>0">
       <h2>Auswertung</h2>
       <p>
-        <Button @click="view=0" :color="view===0? 'primary':'secondary'" label="Übersicht nach Einsätzen"/>
-        <Button @click="view=1" :color="view===1? 'primary':'secondary'" label="Übersicht nach Lehrkräften"/>
+        <Button @click="view=0" :severity="view===0? 'primary':'secondary'" label="Übersicht nach Einsätzen"/>
+        <Button @click="view=1" :severity="view===1? 'primary':'secondary'" label="Übersicht nach Lehrkräften"/>
       </p>
       <div>
         <DatePicker @date-select="updateStatistic()" selectionMode="range" v-model="dates" date-format="yy-m" view="month"/>
@@ -36,7 +36,7 @@
         <MultiSelect v-model="selectedLehrkraefte" :option-label="(lk)=>{return lk.name+' ('+lk.kuerzel+')';}" :options="project.lehrkraefte"/> <Select v-model="sort" :options="options.sort"/>
       </div>
       <div >
-        <table class="overview">
+        <table class="overview" v-if="view===0">
           <tbody>
           <tr><th v-for="(m,i) in statistic.months">{{ m.monthName }}</th><th>Gesamt</th></tr>
           <tr>
@@ -61,12 +61,20 @@
               </div>
             </td>
           </tr>
-          <!-- <template v-for="(d,i) in statistic.data">
-          <tr v-if="d">
-            <td>{{d.sum}}</td>
-            <td><Button @click="showLehrkraftDetails(lk)" text v-for="(lk,j) in d.lehrkraefte" :label="lk.name"/></td>
+          </tbody>
+        </table>
+        <table class="overview" v-if="view===1">
+          <tbody>
+          <tr><th>Lehrkraft</th><th v-for="(m,i) in statistic.months">{{ m.monthName }}</th><th>Gesamt</th></tr>
+          <tr v-for="(lk,j) in selectedLehrkraefte">
+            <td>{{ lk.getFullName() }}</td>
+            <td style="vertical-align: top" v-for="(m,i) in statistic.months">
+              <Button @click="showLehrkraftDetails(lk,m)" text :label="lk.getStatistic(m,displayedData)"/>
+            </td>
+            <td style="vertical-align: top">
+              <Button @click="showLehrkraftDetails(lk)" text :label="lk.getStatistic(null,displayedData)"/>
+            </td>
           </tr>
-          </template> -->
           </tbody>
         </table>
       </div>
@@ -130,13 +138,13 @@ import DialogEinsaetzeDetails from "./dialog-einsaetze-details.vue";
 
 const excelReader=new ExcelReader();
 
-let displayedData=[
-  { name: "Vertretungen - Entfälle (nur zählend)", type: 0},
-  { name: "Vertretungen - Entfälle (alle)", type: 1}, 
-  { name: "Vertretungen (nur zählend)", type: 2},
-  { name: "Vertretungen (alle)", type: 3}, 
-  { name: "Entfälle (nur zählend)", type: 4}, 
-  { name: "Entfälle (alle)", type: 5}
+export let displayedData=[
+  { name: "Vertretungen - Entfälle (nur zählend)", type: 0, calc: (data)=>{return data.vertretungen.zaehlen-data.entfaelle.zaehlen;}},
+  { name: "Vertretungen - Entfälle (alle)", type: 1, calc: (data)=>{return data.vertretungen.zaehlen+data.vertretungen.nichtZaehlen-data.entfaelle.zaehlen-data.entfaelle.nichtZaehlen;}}, 
+  { name: "Vertretungen (nur zählend)", type: 2, calc: (data)=>{return data.vertretungen.zaehlen;}},
+  { name: "Vertretungen (alle)", type: 3, calc: (data)=>{return data.vertretungen.zaehlen+data.vertretungen.nichtZaehlen;}}, 
+  { name: "Entfälle (nur zählend)", type: 4, calc: (data)=>{return data.entfaelle.zaehlen;}}, 
+  { name: "Entfälle (alle)", type: 5, calc: (data)=>{return data.entfaelle.zaehlen+data.entfaelle.nichtZaehlen;}}
 ];
 
 export default{
@@ -253,6 +261,7 @@ export default{
       this.updateStatistic();
     },
     updateStatistic(){
+      console.log("update statistic");
       this.statistic.update(this.displayedData.type,this.from,this.to,this.selectedLehrkraefte, this.sort==="aufsteigend");
     },
     showLehrkraftDetails(lk,month){

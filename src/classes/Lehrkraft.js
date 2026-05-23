@@ -1,3 +1,5 @@
+import { dateBetween } from "../functions/dateBetween";
+
 export default class Lehrkraft{
   constructor(kuerzel,name){
     this.name=name;
@@ -18,27 +20,25 @@ export default class Lehrkraft{
     return this.name+ " ["+this.kuerzel+"]";
   }
   getEinsaetze(from,to,vertretungen,entfaelle,zaehlend,nichtZaehlend){
-    console.log("getEinsaetze");
-    from={
-      month: from.getMonth(),
-      year: from.getFullYear()
-    };
-    if(to){
-      to={
-        month: to.getMonth(),
-        year: to.getFullYear()
-      };
-    }else{
-      to=from;
-    }
+    if(!to) to=from;
     let einsaetze=[];
     for(let a in this.data){
       let dataJahr=this.data[a];
       for(let i=0;i<dataJahr.length;i++){
         let month=dataJahr[i];
         if(!month) continue;
+        if(!dateBetween({year: a*1, month: i}, from, to)) continue;
         for(let j=0;j<month.einsaetze.length;j++){
           let e=month.einsaetze[j];
+          let zaehlt=e.isZaehlend();
+          if(!zaehlend && zaehlt) continue;
+          if(!nichtZaehlend && !zaehlt) continue;
+          if(vertretungen && entfaelle){
+            //alles durchlassen
+          }else{
+            if(vertretungen && !e.isVertretung()) continue;
+            if(entfaelle && !e.isEntfall()) continue;
+          }
           einsaetze.push(e);
         }
       }

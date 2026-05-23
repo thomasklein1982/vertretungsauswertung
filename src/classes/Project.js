@@ -54,7 +54,6 @@ export default class Project{
     let heading=text.substring(0,res.index).trim();
     text=text.replace(new RegExp(heading,"g"),"");
     text=text.replace(/EZEnde/g,"");
-    console.log("Export-Date:",exportDate);
     let rest=text;
     while(true){
       let c;
@@ -79,7 +78,6 @@ export default class Project{
         kuerzel=name;
         name="?";
       }
-      console.log("Kürzel:",kuerzel, "Name:", name);
       rest=rest.substring(pos);
       let lk=this.getLehrkraftByKuerzel(kuerzel);
       if(!lk){
@@ -115,12 +113,12 @@ export default class Project{
       }
       einsaetze=einsaetze.substring(pos+captions.length).trim();
       //einsaetze zeilenweise parsen: jede Zeile beginnt mit Datum, es ist aber auch ein datums-bereich möglich
-      let re=/(\d{1,2}\.\d{1,2}\.(?:\s*-\s*\d{1,2}\.\d{1,2}\.)?)( (Mo|Di|Mi|Do|Fr|Sa|So)\/(\d+))?/;
+      let re=/(\d{1,2}\.\d{1,2}\.(?:\s*-\s*\d{1,2}\.\d{1,2}\.)?)( (?:Mo|Di|Mi|Do|Fr|Sa|So)\/(?:\S*))?/;
       res=re.exec(einsaetze);
       while(res){
         let datum=res[1];
-        let wochentag=res[3];
-        let stunde=res[4];
+        let stunde=res[2];
+        if(stunde) stunde=stunde.trim();
         einsaetze=einsaetze.substring(res[0].length).trim();
         pos=einsaetze.indexOf(" ");
         let art=einsaetze.substring(0,pos).trim();
@@ -140,7 +138,7 @@ export default class Project{
           infos=einsaetze.substring(0,res.index).trim();
           einsaetze=einsaetze.substring(res.index).trim();
         }
-        lk.addEinsatz(jahr,monat,new Einsatz(datum,wochentag,stunde,art,wert,infos));
+        lk.addEinsatz(jahr,monat,new Einsatz(datum,stunde,art,wert,infos));
       }
       let summen=lehrer.substring(pos);
       

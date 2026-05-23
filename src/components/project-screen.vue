@@ -84,22 +84,22 @@
           <th>Art</th><th>Anzahl Stunden</th><th></th>
         </tr>
         <tr>
-          <td>Vertretungen (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,2) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen}}</td><td><Button @click="showEinsaetzeDetails(true,false,true,false)"/></td>
+          <td>Vertretungen (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,2) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen}}</td><td><Button icon="pi pi-info-circle" @click="showEinsaetzeDetails(true,false,true,false)"/></td>
         </tr>
         <tr>
-          <td>Vertretungen (nicht zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,6) : lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen}}</td>
+          <td>Vertretungen (nicht zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,6) : lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen}}</td><td><Button icon="pi pi-info-circle" @click="showEinsaetzeDetails(true,false,false,true)"/></td>
         </tr>
         <tr>
-          <td>Entfälle (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,4) : lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td>
+          <td>Entfälle (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,4) : lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td><td><Button icon="pi pi-info-circle" @click="showEinsaetzeDetails(false,true,true,false)"/></td>
         </tr>
         <tr>
-          <td>Entfälle (nicht zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,7) : lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td>
+          <td>Entfälle (nicht zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,7) : lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td><td><Button icon="pi pi-info-circle" @click="showEinsaetzeDetails(false,true,false,true)"/></td>
         </tr>
         <tr>
-          <td>Bilanz (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,0) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td>
+          <td>Bilanz (zählend)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,0) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen}}</td><td><Button icon="pi pi-info-circle" @click="showEinsaetzeDetails(true,true,true,false)"/></td>
         </tr>
         <tr>
-          <td>Bilanz (alles)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,1) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen+lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td>
+          <td>Bilanz (alles)</td><td>{{monthDetails? lehrkraftDetails.getData(monthDetails.year,monthDetails.month,1) : lehrkraftDetails.cumulatedData.vertretungen.zaehlen+lehrkraftDetails.cumulatedData.vertretungen.nichtZaehlen-lehrkraftDetails.cumulatedData.entfaelle.zaehlen-lehrkraftDetails.cumulatedData.entfaelle.nichtZaehlen}}</td><td><Button icon="pi pi-info-circle" @click="showEinsaetzeDetails(true,true,true,true)"/></td>
         </tr>
         </tbody>
       </table>
@@ -194,7 +194,21 @@ export default{
   },
   methods: {
     showEinsaetzeDetails(showVertretungen,showEntfaelle,showZaehlend,showNichtZaehlend){
-      this.$refs.dialogEinsaetzeDetails.open(this.lehrkraftDetails,this.dates,showVertretungen,showEntfaelle,showZaehlend,showNichtZaehlend);
+      let dates=[];
+      if(this.monthDetails){
+        dates.push(this.monthDetails);
+      }else{
+        for(let i=0;i<this.dates.length;i++){
+          let d=this.dates[i];
+          let m={
+            year: d.getFullYear(),
+            month: d.getMonth()
+          };
+          dates.push(m);
+        }
+        dates=this.dates;
+      }
+      this.$refs.dialogEinsaetzeDetails.open(this.lehrkraftDetails,dates,showVertretungen,showEntfaelle,showZaehlend,showNichtZaehlend);
     },
     setFilter(lk){
       this.selectedLehrkraefte=[lk];

@@ -1,11 +1,20 @@
 export class Einsatz{
-  constructor(datum,wochentag,stunde,art,wert,infos){
+  constructor(datum,stunde,art,wert,infos){
     this.datum=datum;
-    this.wochentag=wochentag;
     this.stunde=stunde;
     this.art=art;
-    this.wert=wert;
+    this.wert=wert*1;
     this.infos=infos;
-    console.log("Einsatz",this);
+  }
+  isZaehlend(){
+    return this.wert!==0;
+  }
+  isVertretung(){
+    if(this.isZaehlend()) return this.wert>0;
+    return this.art.toLowerCase().indexOf("v")>=0;
+  }
+  isEntfall(){
+    if(this.isZaehlend()) return this.wert<0;
+    return this.art.toLowerCase().indexOf("e")>=0;
   }
 }

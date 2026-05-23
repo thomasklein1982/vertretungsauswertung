@@ -1,15 +1,16 @@
 <template>
   <Dialog :header="header" v-model:visible="show">
     <template v-if="lehrkraft">
-      <p v-if="dates.length===1">Zeitraum: {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }}</p>
-      <p v-else-if="dates.length>1">Zeitraum: {{ months[dates[0].getMonth()] }} {{ dates[0].getFullYear() }} bis {{ months[dates[1].getMonth()] }} {{ dates[1].getFullYear() }}:</p>
+      <p v-if="dates.length===1">Zeitraum: {{ months[dates[0].month] }} {{ dates[0].year }}</p>
+      <p v-else-if="dates.length>1">Zeitraum: {{ months[dates[0].month] }} {{ dates[0].year }} bis {{ months[dates[1].month] }} {{ dates[1].year }}:</p>
+      <p>Vertretungen: {{showVertretungen}}, Entfälle: {{ showEntfaelle }}, Zählend: {{ showZaehlend }}, Nicht-Zählend: {{ showNichtZaehlend }}</p>
       <table class="details">
         <tbody>
         <tr>
           <th>Datum</th><th>Stunde</th><th>Art</th><th>Wert</th><th>Weitere Infos</th>
         </tr>
         <tr v-for="(e,i) in einsaetze">
-          <td>{{e.datum}}</td><td>{{ e.wochentag }}/{{ e.stunde }}</td><td>{{ e.art }}</td><td>{{ e.wert }}</td><td>{{ e.infos }}</td>
+          <td>{{e.datum}}</td><td>{{ e.stunde }}</td><td>{{ e.art }}</td><td>{{ e.wert }}</td><td>{{ e.infos }}</td>
         </tr>
         </tbody>
       </table>
@@ -71,7 +72,17 @@ export default{
   methods: {
     open(lehrkraft, dates, showVertretungen, showEntfaelle, showZaehlend, showNichtZaehlend){
       this.lehrkraft=lehrkraft;
-      this.dates=dates;
+      this.dates=[];
+      for(let i=0;i<dates.length;i++){
+        let d=dates[i];
+        if(d instanceof Date){
+          d={
+            month: d.getMonth(),
+            year: d.getFullYear()
+          };
+        }
+        this.dates.push(d);
+      }
       this.showVertretungen=showVertretungen;
       this.showEntfaelle=showEntfaelle;
       this.showZaehlend=showZaehlend;
